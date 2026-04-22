@@ -1,0 +1,112 @@
+train:
+  exp_name: vaw_open_vocab_seg_b16
+  output_dir: work_dirs/vaw_open_vocab_seg_b16
+  seed: 42
+
+  train_annotation_json: data/train.json
+  val_annotation_json: data/val.json
+  image_root: full-images
+  dataset_module: vaw_seg_dataset_official
+  dataset_class: VAWMaskDataset
+  collate_fn_name: collate_vaw_mask_batch
+  dataset_pipeline: semseg
+  input_size: 224
+  return_region_crops: false
+  min_mask_area: 16
+  num_workers: 8
+  pin_memory: true
+  persistent_workers: true
+  train_batch_size: 2
+  val_batch_size: 2
+
+  epochs: 20
+  max_steps: -1
+  gradient_accumulation_steps: 1
+  max_grad_norm: 1.0
+  mixed_precision: bf16
+  find_unused_parameters: false
+
+  optimizer: adamw
+  lr: 1.0e-4
+  weight_decay: 0.05
+  separate_no_decay: true
+  no_decay_weight_decay: 0.0
+
+  # Example param groups; first-match-wins.
+  optimizer_param_groups:
+    - name: backbone_vision
+      keywords: ["backbone.clip.vision_model"]
+      lr: 1.0e-5
+      weight_decay: 0.05
+    - name: backbone_text
+      keywords: ["backbone.clip.text_model", "backbone.clip.text_projection"]
+      lr: 5.0e-6
+      weight_decay: 0.0
+    - name: decoder
+      keywords: ["feature_adapter", "pixel_decoder", "query_decoder", "query_to_text_dim", "object_head", "attr_head"]
+      lr: 1.0e-4
+      weight_decay: 0.05
+
+  lr_scheduler: linear_warmup_cosine
+  warmup_ratio: 0.05
+  min_lr_ratio: 0.1
+
+  log_interval: 20
+  val_interval: 500
+  checkpoint_interval: 1000
+  save_every_epoch: true
+  keep_last_k: 3
+  monitor: val/total_loss
+  monitor_mode: min
+
+  use_wandb: true
+  wandb_project: vaw-open-vocab-seg
+  wandb_run_name: null
+  wandb_tags: [baseline, clip, mask2former-style]
+  wandb_watch: false
+
+  resume_from: null
+  save_best: true
+  debug: false
+
+model:
+  backbone:
+    pretrained_name: openai/clip-vit-base-patch16
+    selected_hidden_states: [3, 6, 9, 12]
+    freeze_vision: false
+    freeze_text: false
+    train_projection_only: false
+    gradient_checkpointing: false
+  pixel_decoder:
+    hidden_dim: 256
+    mask_dim: 256
+    fpn_dim: 256
+    conv_norm: gn
+  query_decoder:
+    hidden_dim: 256
+    num_queries: 100
+    num_feature_levels: 4
+    num_layers: 6
+    nheads: 8
+    dim_feedforward: 1024
+    dropout: 0.0
+    pre_norm: false
+    mask_threshold: 0.5
+    deep_supervision: true
+  text_head:
+    logit_scale_init: 10.0
+    background_init_std: 0.02
+    attribute_mlp_ratio: 2
+    normalize_queries: true
+    normalize_text: true
+  loss:
+    no_object_weight: 0.1
+    matcher_cost_class: 2.0
+    matcher_cost_mask: 5.0
+    matcher_cost_dice: 5.0
+    loss_object_weight: 2.0
+    loss_mask_weight: 5.0
+    loss_dice_weight: 5.0
+    loss_attr_weight: 2.0
+    loss_attr_pos_weight: 1.0
+    aux_loss: true
