@@ -3,21 +3,21 @@ train:
   output_dir: work_dirs/vaw_open_vocab_seg_b16
   seed: 42
 
-  train_annotation_json: data/train.json
+  train_annotation_json: data/train_part1.json
   val_annotation_json: data/val.json
   image_root: full-images
   dataset_module: vaw_seg_dataset_official
   dataset_class: VAWMaskDataset
   collate_fn_name: collate_vaw_mask_batch
   dataset_pipeline: semseg
-  input_size: 224
+  input_size: 512
   return_region_crops: false
   min_mask_area: 16
   num_workers: 8
   pin_memory: true
   persistent_workers: true
-  train_batch_size: 2
-  val_batch_size: 2
+  train_batch_size: 16
+  val_batch_size: 32
 
   epochs: 20
   max_steps: -1
@@ -51,7 +51,7 @@ train:
   warmup_ratio: 0.05
   min_lr_ratio: 0.1
 
-  log_interval: 20
+  log_interval: 50
   val_interval: 500
   checkpoint_interval: 1000
   save_every_epoch: true

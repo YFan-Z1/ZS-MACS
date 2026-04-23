@@ -1,18 +1,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Sequence, Tuple
+from typing import Tuple
 
 
 @dataclass
 class CLIPBackboneConfig:
     pretrained_name: str = "openai/clip-vit-base-patch16"
     selected_hidden_states: Tuple[int, ...] = (3, 6, 9, 12)
+
+    # legacy options
     freeze_vision: bool = False
     freeze_text: bool = False
     train_projection_only: bool = False
     gradient_checkpointing: bool = False
     patch_dropout: float = 0.0
+
+    # new fine-tuning options
+    finetune_mode: str = "full"  # full | frozen | projection_only | last_n | ln_only
+    vision_unfreeze_last_n: int = 0
+    text_unfreeze_last_n: int = 0
+    freeze_vision_embeddings: bool = True
+    freeze_text_embeddings: bool = True
+    unfreeze_visual_projection: bool = True
+    unfreeze_text_projection: bool = True
+    unfreeze_logit_scale: bool = True
 
 
 @dataclass
@@ -20,7 +32,7 @@ class PixelDecoderConfig:
     hidden_dim: int = 256
     mask_dim: int = 256
     fpn_dim: int = 256
-    conv_norm: str = "gn"  # gn | bn | none
+    conv_norm: str = "gn"
 
 
 @dataclass
@@ -72,5 +84,5 @@ class ModelConfig:
 
 
 DEFAULT_OBJECT_PROMPT = "a photo of a {name}"
-DEFAULT_ATTRIBUTE_PROMPT = "a photo of something that is {name}"
+DEFAULT_ATTRIBUTE_PROMPT = "a photo of {name} object"
 DEFAULT_PAIR_PROMPT = "a photo of a {attr} {obj}"

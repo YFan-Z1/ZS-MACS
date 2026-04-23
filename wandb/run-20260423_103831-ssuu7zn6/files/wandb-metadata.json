@@ -1,0 +1,42 @@
+{
+  "os": "Linux-5.15.0-100-generic-x86_64-with-glibc2.31",
+  "python": "CPython 3.10.20",
+  "startedAt": "2026-04-23T02:38:31.573382Z",
+  "args": [
+    "--config",
+    "configs/train.yaml"
+  ],
+  "program": "-m main",
+  "git": {
+    "remote": "https://github.com/YFan-Z1/ZS-MACS.git",
+    "commit": "299160c129e2f92fcd273efed38c4edc62b41c4e"
+  },
+  "email": "yifanzhu12138@gmail.com",
+  "root": "/home/ubuntu/桌面/zyf/code/ZS-MACS",
+  "host": "ubuntu",
+  "executable": "/home/ubuntu/anaconda3/envs/rft/bin/python",
+  "cpu_count": 10,
+  "cpu_count_logical": 16,
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "982820896768",
+      "used": "829347782656"
+    }
+  },
+  "memory": {
+    "total": "33379651584"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4060 Ti",
+      "memoryTotal": "17175674880",
+      "cudaCores": 4352,
+      "architecture": "Ada",
+      "uuid": "GPU-465e4a0f-e71c-f619-a56d-9efde627d4ae"
+    }
+  ],
+  "cudaVersion": "12.4",
+  "writerId": "eet65e9pw8c5169a4zhy82c60fer7unb"
+}

@@ -9,7 +9,13 @@ git config --global http.https://github.com.proxy http://127.0.0.1:7890
 git config --global https.https://github.com.proxy http://127.0.0.1:7890
 # 先拉取远程提交并与本地合并
 git pull origin main --rebase
+git push -u origin main
+
 
 # 如果没有冲突，直接推送
 git push -u origin main
 mima-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
+
+git add .
+git commit -m "something update"
+git push

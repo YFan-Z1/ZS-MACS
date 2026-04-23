@@ -1,0 +1,160 @@
+_wandb:
+    value:
+        cli_version: 0.26.0
+        e:
+            0mgze7drcbxdn6go4mrn4ltaantmm4z0:
+                args:
+                    - --config
+                    - configs/train.yaml
+                cpu_count: 10
+                cpu_count_logical: 16
+                cudaVersion: "12.4"
+                disk:
+                    /:
+                        total: "982820896768"
+                        used: "829259407360"
+                email: yifanzhu12138@gmail.com
+                executable: /home/ubuntu/anaconda3/envs/rft/bin/python
+                git:
+                    commit: 299160c129e2f92fcd273efed38c4edc62b41c4e
+                    remote: https://github.com/YFan-Z1/ZS-MACS.git
+                gpu: NVIDIA GeForce RTX 4060 Ti
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ada
+                      cudaCores: 4352
+                      memoryTotal: "17175674880"
+                      name: NVIDIA GeForce RTX 4060 Ti
+                      uuid: GPU-465e4a0f-e71c-f619-a56d-9efde627d4ae
+                host: ubuntu
+                memory:
+                    total: "33379651584"
+                os: Linux-5.15.0-100-generic-x86_64-with-glibc2.31
+                program: -m main
+                python: CPython 3.10.20
+                root: /home/ubuntu/桌面/zyf/code/ZS-MACS
+                startedAt: "2026-04-23T02:33:03.452874Z"
+                writerId: 0mgze7drcbxdn6go4mrn4ltaantmm4z0
+        m: []
+        python_version: 3.10.20
+        t:
+            "1":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 71
+            "2":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 71
+            "3":
+                - 13
+                - 15
+                - 61
+            "4": 3.10.20
+            "5": 0.26.0
+            "6": 4.57.0
+            "12": 0.26.0
+            "13": linux-x86_64
+train:
+    value:
+        betas:
+            - 0.9
+            - 0.999
+        checkpoint_interval: 1000
+        collate_fn_name: collate_vaw_mask_batch
+        dataset_class: VAWMaskDataset
+        dataset_module: vaw_seg_dataset_official
+        dataset_pipeline: semseg
+        debug: false
+        epochs: 20
+        eps: 1e-08
+        eta_min_ratio: 0
+        exp_name: vaw_open_vocab_seg_b16
+        find_unused_parameters: false
+        frozen_keywords: null
+        gamma: 0.5
+        gradient_accumulation_steps: 1
+        image_root: full-images
+        input_size: 224
+        keep_last_k: 3
+        log_interval: 20
+        lr: 0.0001
+        lr_scheduler: linear_warmup_cosine
+        max_grad_norm: 1
+        max_steps: -1
+        milestones: null
+        min_lr_ratio: 0.1
+        min_mask_area: 16
+        mixed_precision: bf16
+        momentum: 0.9
+        monitor: val/total_loss
+        monitor_mode: min
+        nesterov: false
+        no_decay_keywords:
+            - bias
+            - bn
+            - ln
+            - norm
+            - layernorm
+            - layer_norm
+            - batchnorm
+            - batch_norm
+        no_decay_weight_decay: 0
+        num_workers: 8
+        optimizer: adamw
+        optimizer_param_groups:
+            - keywords:
+                - backbone.clip.vision_model
+              lr: 1e-05
+              name: backbone_vision
+              weight_decay: 0.05
+            - keywords:
+                - backbone.clip.text_model
+                - backbone.clip.text_projection
+              lr: 5e-06
+              name: backbone_text
+              weight_decay: 0
+            - keywords:
+                - feature_adapter
+                - pixel_decoder
+                - query_decoder
+                - query_to_text_dim
+                - object_head
+                - attr_head
+              lr: 0.0001
+              name: decoder
+              weight_decay: 0.05
+        output_dir: work_dirs/vaw_open_vocab_seg_b16
+        persistent_workers: true
+        pin_memory: true
+        reset_trainable: false
+        resume_from: null
+        return_region_crops: false
+        save_best: true
+        save_every_epoch: true
+        seed: 42
+        separate_no_decay: true
+        step_size: 0
+        train_annotation_json: data/train_part1.json
+        train_batch_size: 2
+        trainable_keywords: null
+        use_group_keywords_as_trainable: true
+        use_wandb: true
+        val_annotation_json: data/val.json
+        val_batch_size: 2
+        val_interval: 500
+        wandb_entity: null
+        wandb_project: vaw-open-vocab-seg
+        wandb_run_name: null
+        wandb_tags:
+            - baseline
+            - clip
+            - mask2former-style
+        wandb_watch: false
+        warmup_ratio: 0.05
+        warmup_steps: 0
+        weight_decay: 0.05

@@ -1,33 +1,34 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import json
 import logging
 import os
 import random
-from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List
+
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-
-from .config import FullConfig
 
 
 def setup_logging(output_dir: str | Path, rank: int = 0) -> logging.Logger:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger(f'vaw_open_vocab_seg.rank{rank}')
+
+    logger = logging.getLogger(f"vaw_open_vocab_seg.rank{rank}")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
 
-    fmt = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    fmt = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
     if rank == 0:
         sh = logging.StreamHandler()
         sh.setFormatter(fmt)
         logger.addHandler(sh)
-    fh = logging.FileHandler(output_dir / f'train_rank{rank}.log', encoding='utf-8')
+
+    fh = logging.FileHandler(output_dir / f"train_rank{rank}.log", encoding="utf-8")
     fh.setFormatter(fmt)
     logger.addHandler(fh)
     logger.propagate = False
@@ -46,10 +47,7 @@ def move_targets_to_device(targets: List[Dict[str, Any]], device: torch.device) 
     for t in targets:
         out = {}
         for k, v in t.items():
-            if torch.is_tensor(v):
-                out[k] = v.to(device, non_blocking=True)
-            else:
-                out[k] = v
+            out[k] = v.to(device, non_blocking=True) if torch.is_tensor(v) else v
         moved.append(out)
     return moved
 
@@ -62,14 +60,57 @@ def count_parameters(model: torch.nn.Module) -> Dict[str, int]:
         total += n
         if p.requires_grad:
             trainable += n
-    return {'total': int(total), 'trainable': int(trainable), 'frozen': int(total - trainable)}
+    return {"total": int(total), "trainable": int(trainable), "frozen": int(total - trainable)}
+
+
+def _import_module_from_file(module_path: str):
+    path = Path(module_path).expanduser().resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"Dataset module file not found: {path}")
+    spec = importlib.util.spec_from_file_location(path.stem, str(path))
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load module from file: {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def import_dataset_components(module_name: str, dataset_class: str, collate_fn_name: str):
-    mod = importlib.import_module(module_name)
+    mod = None
+    tried = []
+
+    if module_name.endswith(".py") or os.path.sep in module_name:
+        mod = _import_module_from_file(module_name)
+    else:
+        candidates = [module_name]
+        if "." not in module_name:
+            candidates.extend([
+                f"data.{module_name}",
+                "data.dataset",
+                "dataset",
+                "vaw_seg_dataset_official",
+            ])
+        seen = set()
+        for cand in candidates:
+            if cand in seen:
+                continue
+            seen.add(cand)
+            tried.append(cand)
+            try:
+                mod = importlib.import_module(cand)
+                break
+            except Exception:
+                continue
+
+    if mod is None:
+        raise ImportError(
+            f"Failed to import dataset module `{module_name}`. "
+            f"Tried: {tried if tried else [module_name]}"
+        )
+
     ds_cls = getattr(mod, dataset_class)
     collate_fn = getattr(mod, collate_fn_name)
-    seg_aug_cls = getattr(mod, 'SegAugConfig', None)
+    seg_aug_cls = getattr(mod, "SegAugConfig", None)
     return ds_cls, collate_fn, seg_aug_cls
 
 
@@ -89,22 +130,22 @@ def build_datasets_and_loaders(cfg, accelerator=None):
         min_mask_area=cfg.min_mask_area,
     )
     if aug_cfg is not None:
-        common_kwargs['aug_cfg'] = aug_cfg
-
+        common_kwargs["aug_cfg"] = aug_cfg
+    val_ann = cfg.val_annotation_json or cfg.train_annotation_json
     train_dataset = ds_cls(
         annotation_json=cfg.train_annotation_json,
-        split='train',
+        split="train",
         **common_kwargs,
     )
 
-    val_ann = cfg.val_annotation_json or cfg.train_annotation_json
     val_dataset = ds_cls(
         annotation_json=val_ann,
-        split='val',
+        split="val",
+        object_vocab=train_dataset.object_vocab,
+        attribute_vocab=train_dataset.attribute_vocab,
         **common_kwargs,
     )
 
-    # Avoid persistent_workers when num_workers == 0.
     persistent_workers = bool(cfg.persistent_workers and cfg.num_workers > 0)
 
     train_loader = DataLoader(
@@ -133,5 +174,5 @@ def build_datasets_and_loaders(cfg, accelerator=None):
 def save_json(data: Dict[str, Any], path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)

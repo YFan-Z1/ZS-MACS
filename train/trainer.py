@@ -12,9 +12,9 @@ from typing import Any, Deque, Dict, List, Optional
 import torch
 
 from .hooks import DEFAULT_HOOKS, Hook
-from .optim_utils import build_optimizer
-from .scheduler_utils import build_scheduler, describe_scheduler
-from .train_utils import count_parameters, move_targets_to_device, save_json
+from tools.optimization import build_optimizer
+from tools.scheduler_factory import build_scheduler, describe_scheduler
+from .utils import count_parameters, move_targets_to_device, save_json
 
 
 @dataclass
@@ -38,6 +38,12 @@ class TrainerState:
 
     def mean_train_metrics(self) -> Dict[str, float]:
         return {k: (sum(v) / max(1, len(v))) for k, v in self.train_history.items() if len(v) > 0}
+
+
+def _safe_unwrap_model(model):
+    while hasattr(model, "module"):
+        model = model.module
+    return model
 
 
 class SegTrainer:
@@ -78,7 +84,7 @@ class SegTrainer:
         )
         self.total_update_steps = total_update_steps
         self.hooks = sorted(hooks or DEFAULT_HOOKS, key=lambda h: getattr(h, 'priority', 50))
-        self.param_summary = count_parameters(self.accelerator.unwrap_model(self.model))
+        self.param_summary = count_parameters(_safe_unwrap_model(self.model))
 
     def _compute_total_update_steps(self) -> int:
         if self.cfg.max_steps and self.cfg.max_steps > 0:
