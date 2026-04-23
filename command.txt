@@ -1,0 +1,15 @@
+# for git commit
+# git init
+# git add .
+git commit -m "Initial commit"
+git branch -M main  # 挂分支
+git remote add origin https://github.com/YFan-Z1/ZS-MACS.git  # remote github repo
+# 只代理 GitHub（更精准，推荐）
+git config --global http.https://github.com.proxy http://127.0.0.1:7890
+git config --global https.https://github.com.proxy http://127.0.0.1:7890
+# 先拉取远程提交并与本地合并
+git pull origin main --rebase
+
+# 如果没有冲突，直接推送
+git push -u origin main
+mima-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
