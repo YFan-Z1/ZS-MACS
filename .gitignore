@@ -27,6 +27,7 @@ weights/
 output/
 results/
 runs/
+wandb/
 
 # IDE
 .idea/
